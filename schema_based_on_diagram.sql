@@ -1,51 +1,74 @@
-CREATE TABLE "treatments"(
-    "id" INTEGER NOT NULL,
-    "type" VARCHAR(50) NOT NULL,
-    "name" VARCHAR(50) NOT NULL
+CREATE DATABASE clinic;
+
+CREATE TABLE patients (
+id INT, 
+name VARCHAR(50),
+PRIMARY KEY(id)
 );
-ALTER TABLE
-    "treatments" ADD PRIMARY KEY("id");
-CREATE TABLE "medical_histories"(
-    "id" INTEGER NOT NULL,
-    "admitted_at" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
-    "patient_id" INTEGER NOT NULL,
-    "status" VARCHAR(50) NOT NULL
+
+CREATE TABLE medical_histories(
+id INT, 
+admitted_at TIMESTAMP,
+patient_id INT,
+status VARCHAR(50),
+PRIMARY KEY(id),
+CONSTRAINT fk_patients
+FOREIGN KEY(patient_id)
+REFERENCES patients(id)
 );
-ALTER TABLE
-    "medical_histories" ADD PRIMARY KEY("id");
-CREATE TABLE "invoices"(
-    "id" INTEGER NOT NULL,
-    "total_amount" DECIMAL(8, 2) NOT NULL,
-    "generated_at" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
-    "payed_at" TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
-    "medical_history_id" INTEGER NOT NULL
+
+CREATE TABLE invoices (
+id INT, 
+total_amount DECIMAL,
+generated_at TIMESTAMP,
+payed_at TIMESTAMP,
+medical_history_id INT,
+PRIMARY KEY(id),
+CONSTRAINT fk_medical_histories
+FOREIGN KEY(medical_history_id)
+REFERENCES medical_histories(id)
 );
-ALTER TABLE
-    "invoices" ADD PRIMARY KEY("id");
-CREATE TABLE "patients"(
-    "id" INTEGER NOT NULL,
-    "name" VARCHAR(50) NOT NULL,
-    "data_of_birth" DATE NOT NULL
+
+
+
+CREATE TABLE invoice_items (
+id INT, 
+unit_price DECIMAL,
+quantity INT,
+total_price DECIMAL,
+invoice_id INT,
+treatment_id INT,
+PRIMARY KEY(id),
+CONSTRAINT fk_invoices
+FOREIGN KEY(invoice_id)
+REFERENCES invoices(id),
+CONSTRAINT treatments
+FOREIGN KEY(treatment_id)
+REFERENCES treatments(id)
 );
-ALTER TABLE
-    "patients" ADD PRIMARY KEY("id");
-CREATE TABLE "invoice_items"(
-    "id" INTEGER NOT NULL,
-    "unit_price" DECIMAL(8, 2) NOT NULL,
-    "quantity" INTEGER NOT NULL,
-    "total_price" DECIMAL(8, 2) NOT NULL,
-    "invoice_id" INTEGER NOT NULL,
-    "treatment_id" INTEGER NOT NULL
+
+CREATE TABLE treatments(
+id INT,
+type VARCHAR(50),
+name VARCHAR(50),
+PRIMARY KEY(id)
 );
-ALTER TABLE
-    "invoice_items" ADD PRIMARY KEY("id");
-ALTER TABLE
-    "treatments" ADD CONSTRAINT "treatments_id_foreign" FOREIGN KEY("id") REFERENCES "medical_histories"("id");
-ALTER TABLE
-    "invoice_items" ADD CONSTRAINT "invoice_items_id_foreign" FOREIGN KEY("id") REFERENCES "treatments"("id");
-ALTER TABLE
-    "invoices" ADD CONSTRAINT "invoices_medical_history_id_foreign" FOREIGN KEY("medical_history_id") REFERENCES "medical_histories"("id");
-ALTER TABLE
-    "medical_histories" ADD CONSTRAINT "medical_histories_patient_id_foreign" FOREIGN KEY("patient_id") REFERENCES "patients"("id");
-ALTER TABLE
-    "invoice_items" ADD CONSTRAINT "invoice_items_invoice_id_foreign" FOREIGN KEY("invoice_id") REFERENCES "invoices"("id");
+
+CREATE TABLE join_med_treat (
+medical_history_id INT,
+treatment_id INT,
+PRIMARY KEY(medical_history_id, treatment_id),
+CONSTRAINT fk_medical_histories
+FOREIGN KEY (medical_history_id)
+REFERENCES medical_histories(id),
+CONSTRAINT fk_treatments 
+FOREIGN KEY(treatment_id)
+REFERENCES treatments(id)
+);
+
+CREATE INDEX patient_id ON medical_histories(patient_id ASC);
+CREATE INDEX medical_history_id ON invoices(medical_history_id ASC);
+CREATE INDEX invoice_id ON invoice_items(invoice_id ASC);
+CREATE INDEX treatment_id ON invoice_items(treatment_id ASC);
+CREATE INDEX medical_history ON join_med_treat(medical_history_id ASC);
+CREATE INDEX treatment ON join_med_treat(treatment_id ASC);
